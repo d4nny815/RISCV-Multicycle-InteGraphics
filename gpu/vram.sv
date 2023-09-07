@@ -49,8 +49,8 @@
     input MEM_RDEN1,        // read enable data1
     input MEM_RDEN2,        // read enable data2
     input MEM_WE2,          // write enable.
-    input [12:0] MEM_ADDR1, // data1 memory address
-    input [12:0] MEM_ADDR2, // data2 memory address
+    input [14:0] MEM_ADDR1, // data1 memory address
+    input [14:0] MEM_ADDR2, // data2 memory address
     input [7:0] MEM_DIN2,   // Data to save (1px)
 
     output logic [7:0] MEM_DOUT1, // data1 memory output

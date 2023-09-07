@@ -186,7 +186,7 @@ module OTTER_MCU(
         .srcB     (mux_srcB), 
         .result   (alu_out)
     );
-    assign iobus_addr = alu_out;
+    assign iobus_addr = alu_out; 
 
     branch_cond_gen my_branch_cond_gen(
         .rs1    (rs1),

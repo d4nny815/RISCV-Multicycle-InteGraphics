@@ -62,7 +62,7 @@ module OTTER_Wrapper(
     logic [15:0] r_leds;   //  register for LEDs
     logic [3:0]  r_an;     //  register for display enables (anodes)
     // GPU registers
-    logic [12:0] r_gpu_addr;
+    logic [14:0] r_gpu_addr;
     logic [7:0] r_gpu_data;
     logic v_we_i;
 
@@ -131,7 +131,7 @@ module OTTER_Wrapper(
                 ANODES_PORT_ADDR: r_an   <= IOBUS_out[3:0];
                 TMR_CNTR_CSR_ADDR:    r_tc_csr  <= IOBUS_out[7:0];
                 TMR_CNTR_CNT_IN_ADDR: r_tc_cnt_in <= IOBUS_out[31:0];
-                GPU_PIXEL_ADDR: r_gpu_addr <= IOBUS_out[12:0];
+                GPU_PIXEL_ADDR: r_gpu_addr <= IOBUS_out[14:0];
                 GPU_PIXEL_DATA: begin 
                     r_gpu_data <= IOBUS_out[7:0];
                     v_we_i <= 1'b1; 

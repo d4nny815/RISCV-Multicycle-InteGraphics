@@ -24,7 +24,7 @@ module GPU(
     input clk,
     input v_we_i,
     input [7:0] v_data_i,
-    input [12:0] v_addr_i,
+    input [14:0] v_addr_i,
     output Hsync,
     output Vsync,
     output [3:0] vgaRed, 
@@ -37,7 +37,7 @@ module GPU(
     wire in_vis;
     wire [7:0] pixel_data;
     wire [15:0] pixel_addr;
-    wire [15:0] mapped_pixel_addr;
+    wire [14:0] mapped_pixel_addr;
 
     // data1 is for reading from memory for VGA
     // data2 is for writing to memory from cpu
