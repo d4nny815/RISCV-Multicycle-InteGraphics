@@ -21,14 +21,15 @@
 
 
 module vga_driver(
-    input clk, // 50MHz
-    input [7:0] data,
-    output [15:0] addr,
+    input clk,                      // 50MHz
+    input [7:0] pixel_data,
+    output [15:0] pixel_addr,
     output Hsync,  
     output Vsync,
     output in_vis,
     output reg [3:0] vgaRed, vgaGreen, vgaBlue
     );  
+
 
     wire [7:0] h_pixel;
     wire [7:0] v_pixel;
@@ -41,17 +42,18 @@ module vga_driver(
         .in_vis     (in_vis)
     );
 
-    assign addr = {v_pixel, h_pixel} + 32'h0001_0000;  // first addr is in unused mem
+    assign pixel_addr = {v_pixel, h_pixel};
+
     always @ (posedge clk) begin
         if (in_vis) begin
-            vgaRed = data[5:4];
-            vgaGreen = data[3:2];
-            vgaBlue = data[1:0];
+            vgaRed = 8'h00;
+            vgaGreen = pixel_data[3:0];
+            vgaBlue = pixel_data[7:4];
         end
         else begin
-            vgaRed = 12'h000;
-            vgaGreen = 12'h000;
-            vgaBlue = 12'h000;
+            vgaRed = 8'h00;
+            vgaGreen = 8'h00;
+            vgaBlue = 8'h00;
         end
     end
 

@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 //////////////////////////////////////////////////////////////////////////////////
 // Company: 
-// Engineer: 
+// Engineer:  Danny Gutierrez
 // 
 // Create Date: 05/31/2023 11:17:48 AM
 // Design Name: 
@@ -10,6 +10,8 @@
 // Target Devices: 
 // Tool Versions: 
 // Description: 
+//  This is a RISC-V MCU that implements the RV32I ISA. 
+// 
 // 
 // Dependencies: 
 // 
@@ -21,16 +23,13 @@
 
 
 module OTTER_MCU(
-    input halt,
     input RST,
     input intr,
     input [31:0] iobus_in,
-    input [15:0] vga_addr,
     input clk,
     output iobus_wr,
     output [31:0] iobus_out,
-    output [31:0] iobus_addr,
-    output [7:0] vga_data
+    output [31:0] iobus_addr
     );
 
     // PC wires
@@ -96,7 +95,7 @@ module OTTER_MCU(
     
     reg_nb_sclr #(.n(32)) MY_PC (
         .data_in  (mux_pc), 
-        .ld       (pcWrite && ~halt),
+        .ld       (pcWrite),
         .clk      (clk), 
         .clr      (reset),    // synchronous reset
         .data_out (pc)        // PC 
@@ -107,19 +106,17 @@ module OTTER_MCU(
         .MEM_RDEN1 (memRDEN1), 
         .MEM_RDEN2 (memRDEN2), 
         .MEM_WE2   (memWE2),
-        .MEM_ADDR1 (pc[15:2]),  
-        .MEM_ADDR2 (alu_out), // TODO: 2:1 MUX for alu or vga addr 
+        .MEM_ADDR1 (pc[15:2]),  // remove the LSB
+        .MEM_ADDR2 (alu_out),
         .MEM_DIN2  (rs2),  
         .MEM_SIZE  (ir[13:12]),
         .MEM_SIGN  (ir[14]),
         .IO_IN     (iobus_in),
         .IO_WR     (iobus_wr),
         .MEM_DOUT1 (ir),
-        .MEM_DOUT2 (dout2)  // TODO: vga_data from here, leave as 32b or take snippet
+        .MEM_DOUT2 (dout2)  
     );
-    assign vga_data = dout2[7:0];
-
-
+    
     mux_4t1_nb  #(.n(32)) my_4t1_mux_REG_FILE (
         .SEL   (rf_wr_sel), 
         .D0    (pc + 4),         
@@ -199,13 +196,12 @@ module OTTER_MCU(
         .br_ltu (br_ltu)
     );
 
-    // TODO: think about adding states for vga display 
     CU_FSM my_fsm (
        .intr      (intr  && csr_mstatus_mie),
        .clk       (clk),
        .RST       (RST),
-       .opcode    (ir[6:0]),    
-       .func3     (ir[14:12]),  
+       .opcode    (ir[6:0]),    // ir[6:0]
+       .func3     (ir[14:12]),  // ir[14:12]
        .pcWrite   (pcWrite),
        .regWrite  (regWrite),
        .memWE2    (memWE2),
@@ -221,9 +217,9 @@ module OTTER_MCU(
         .br_eq     (br_eq), 
         .br_lt     (br_lt), 
         .br_ltu    (br_ltu),
-        .opcode    (ir[6:0]),   
-        .func7     (ir[30]),    
-        .func3     (ir[14:12]), 
+        .opcode    (ir[6:0]),   //-  ir[6:0]
+        .func7     (ir[30]),    //-  ir[30]
+        .func3     (ir[14:12]), //-  ir[14:12]
         .int_taken (int_taken), 
         .alu_fun   (alu_fun),
         .pcSource  (pcSource),

@@ -17,7 +17,7 @@ main:
     j main              # go back 
 
 delay:
-    li t0, 0x8      # load delay value
+    li t0, 0x2FFFF      # load delay value
 delay_loop:
     addi t0, t0, -1     # decrement delay
     bne zero, t0, delay_loop

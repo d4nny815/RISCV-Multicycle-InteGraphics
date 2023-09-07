@@ -38,12 +38,14 @@ module OTTER_Wrapper(
          
     //- INPUT PORT IDS ---------------------------------------------------------
     localparam SWITCHES_PORT_ADDR = 32'h11008000;  // 0x1100_8000
-    localparam BUTTONS_PORT_ADDR  = 32'h11008004;  // 0x1100_8004 
+    localparam BUTTONS_PORT_ADDR  = 32'h11008004;  // 0x1100_8004  
                   
     //- OUTPUT PORT IDS --------------------------------------------------------
     localparam LEDS_PORT_ADDR     = 32'h1100C000;  // 0x1100_C000 
     localparam SEGS_PORT_ADDR     = 32'h1100C004;  // 0x1100_C004
     localparam ANODES_PORT_ADDR   = 32'h1100C008;  // 0x1100_C008
+    localparam GPU_PIXEL_ADDR     = 32'h1100C00C;  // 0x1100_C00C
+    localparam GPU_PIXEL_DATA     = 32'h1100C010;  // 0x1100_C010
      
     //- Signals for connecting OTTER_MCU to OTTER_wrapper 
     logic s_interrupt;  
@@ -59,7 +61,11 @@ module OTTER_Wrapper(
     logic [7:0]  r_segs;   //  register for segments (cathodes)
     logic [15:0] r_leds;   //  register for LEDs
     logic [3:0]  r_an;     //  register for display enables (anodes)
- 
+    // GPU registers
+    logic [12:0] r_gpu_addr;
+    logic [7:0] r_gpu_data;
+    logic v_we_i;
+
     
     assign s_interrupt = buttons[4];  // for btn(4) connecting to interrupt
     assign s_reset = buttons[3];      // for btn(3) connecting to reset 
@@ -75,12 +81,9 @@ module OTTER_Wrapper(
     logic [31:0] r_tc_cnt_in; // timer-counter count input
     logic [31:0] s_tc_cnt_out; 
     logic s_tc_intr; 
-    
-    //- VGA connections
-    wire halt;
-    wire [7:0] vga_data;
-    wire [15:0] vga_addr;
 
+
+    
     // instantiate the timer-counter module  
     timer_counter #(.n(3))  my_tc (
         .clk        (s_clk), 
@@ -92,26 +95,24 @@ module OTTER_Wrapper(
     
     //- Instantiate RISC-V OTTER MCU 
     OTTER_MCU my_otter(
-        .halt       (halt), 
         .RST        (s_reset),  
         .intr       (s_tc_intr),
-        .vga_addr   (vga_addr),
         .clk        (s_clk),  
         .iobus_in   (IOBUS_in),  
         .iobus_out  (IOBUS_out),  
         .iobus_addr (IOBUS_addr),
-        .iobus_wr   (IOBUS_wr),
-        .vga_data   (vga_data) 
+        .iobus_wr   (IOBUS_wr)
     );
     
-    vga_driver my_vga(
-        .clk        (s_clk), // 50MHz
-        .data       (vga_data),
-        .addr       (vga_addr),
-        .in_vis     (halt),
-        .Hsync      (Hsync),  
+    GPU dxt1010(
+        .clk        (s_clk),
+        .v_we_i     (v_we_i),
+        .v_data_i   (r_gpu_data),
+        .v_addr_i   (r_gpu_addr),
+        // .addr_o     ()
+        .Hsync      (Hsync),
         .Vsync      (Vsync),
-        .vgaRed     (vgaRed),
+        .vgaRed     (vgaRed), 
         .vgaGreen   (vgaGreen), 
         .vgaBlue    (vgaBlue)
     );
@@ -122,13 +123,19 @@ module OTTER_Wrapper(
    
     //- Drive dev board output devices with registers 
     always_ff @ (posedge s_clk) begin
-        if (IOBUS_wr == 1) begin  
+        if (IOBUS_wr == 1) begin 
+            v_we_i <= 0; 
             case(IOBUS_addr)
                 LEDS_PORT_ADDR:   r_leds <= IOBUS_out[15:0];    
                 SEGS_PORT_ADDR:   r_segs <= IOBUS_out[7:0];
                 ANODES_PORT_ADDR: r_an   <= IOBUS_out[3:0];
                 TMR_CNTR_CSR_ADDR:    r_tc_csr  <= IOBUS_out[7:0];
                 TMR_CNTR_CNT_IN_ADDR: r_tc_cnt_in <= IOBUS_out[31:0];
+                GPU_PIXEL_ADDR: r_gpu_addr <= IOBUS_out[12:0];
+                GPU_PIXEL_DATA: begin 
+                    r_gpu_data <= IOBUS_out[7:0];
+                    v_we_i <= 1'b1; 
+                end             
              endcase
          end 
      end
