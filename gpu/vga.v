@@ -18,7 +18,6 @@ module vga (
     output in_vis
     );
 
-    wire in_h_vis, in_v_vis;
     reg [10:0] h_pixel_800;   
     reg [9:0] v_pixel_600;
     reg v_clk;
@@ -33,7 +32,6 @@ module vga (
             v_clk <= 1;
         end
     end
-    assign in_h_vis = (h_pixel_800 >= 0) && (h_pixel_800 < 800);
     assign in_h_sync = ~((h_pixel_800 >= 800 + 56) && (h_pixel_800 < 800 + 56 + 120));
 
     always @(posedge v_clk)
@@ -43,10 +41,9 @@ module vga (
         else
             v_pixel_600 <= 0;
     end
-    assign in_v_vis = (v_pixel_600 >= 0) && (v_pixel_600 < 600);
     assign in_v_sync = ~((v_pixel_600 >= 600 + 37) && (v_pixel_600 < 600 + 37 + 6));
 
-    assign in_vis = in_h_vis && in_v_vis; // visible area
+    assign in_vis = (h_pixel_800 >= 0) && (h_pixel_800 < 800) && (v_pixel_600 >= 0) && (v_pixel_600 < 600); // visible area
     assign h_pixel = h_pixel_800[9:2];  // mapped to 8 bits
     assign v_pixel = v_pixel_600[9:2];  // mapped to 8 bits
 endmodule

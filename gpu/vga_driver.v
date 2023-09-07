@@ -30,9 +30,8 @@ module vga_driver(
     output reg [3:0] vgaRed, vgaGreen, vgaBlue
     );  
 
+    wire [7:0] v_pixel, h_pixel; 
 
-    wire [7:0] h_pixel;
-    wire [7:0] v_pixel;
     vga my_vga (
         .clk        (clk),
         .h_pixel    (h_pixel),

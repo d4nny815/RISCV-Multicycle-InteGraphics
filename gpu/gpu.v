@@ -53,7 +53,8 @@ module GPU(
         .MEM_DOUT2 ()  // no read
     );
 
-    assign mapped_pixel_addr = {pixel_addr[15:8] * 200 + pixel_addr[7:0]};
+    assign mapped_pixel_addr = (pixel_addr[15:8] * 200 + pixel_addr[7:0]) & {15{in_vis}}; // 200x150 to pixel_addr
+
     vga_driver my_VGA_driver(
         .clk        (clk),
         .pixel_data (pixel_data),

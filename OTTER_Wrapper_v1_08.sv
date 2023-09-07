@@ -25,7 +25,7 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module OTTER_Wrapper(   
-    input clk,   
+    input clk,              // 100 MHz clock
     input [4:0] buttons,  
     input [15:0] switches, 
     output logic [15:0] leds,
@@ -50,7 +50,7 @@ module OTTER_Wrapper(
     //- Signals for connecting OTTER_MCU to OTTER_wrapper 
     logic s_interrupt;  
     logic s_reset;           
-    logic s_clk = 0;            // divided clock by 2
+    logic s_clk = 0;            // 50 MHz clock
  
     logic [31:0] IOBUS_out;
     logic [31:0] IOBUS_in;  
@@ -61,10 +61,11 @@ module OTTER_Wrapper(
     logic [7:0]  r_segs;   //  register for segments (cathodes)
     logic [15:0] r_leds;   //  register for LEDs
     logic [3:0]  r_an;     //  register for display enables (anodes)
+   
     // GPU registers
-    logic [14:0] r_gpu_addr;
-    logic [7:0] r_gpu_data;
-    logic v_we_i;
+    logic [14:0] r_gpu_addr;    //  register for GPU VRAM address
+    logic [7:0] r_gpu_data;     //  register for GPU VRAM data
+    logic v_we_i;               //  write enable for GPU VRAM
 
     
     assign s_interrupt = buttons[4];  // for btn(4) connecting to interrupt
@@ -131,7 +132,7 @@ module OTTER_Wrapper(
                 ANODES_PORT_ADDR: r_an   <= IOBUS_out[3:0];
                 TMR_CNTR_CSR_ADDR:    r_tc_csr  <= IOBUS_out[7:0];
                 TMR_CNTR_CNT_IN_ADDR: r_tc_cnt_in <= IOBUS_out[31:0];
-                GPU_PIXEL_ADDR: r_gpu_addr <= IOBUS_out[14:0];
+                GPU_PIXEL_ADDR: r_gpu_addr <= IOBUS_out[14:0]; 
                 GPU_PIXEL_DATA: begin 
                     r_gpu_data <= IOBUS_out[7:0];
                     v_we_i <= 1'b1; 
