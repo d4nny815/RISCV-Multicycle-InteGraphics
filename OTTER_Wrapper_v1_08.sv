@@ -97,7 +97,7 @@ module OTTER_Wrapper(
     //- Instantiate RISC-V OTTER MCU 
     OTTER_MCU my_otter(
         .RST        (s_reset),  
-        .intr       (s_tc_intr),
+        .intr       (s_tc_intr | s_interrupt),
         .clk        (s_clk),  
         .iobus_in   (IOBUS_in),  
         .iobus_out  (IOBUS_out),  
@@ -105,17 +105,17 @@ module OTTER_Wrapper(
         .iobus_wr   (IOBUS_wr)
     );
     
+    
     GPU dxt1010(
-        .clk        (s_clk),
-        .v_we_i     (v_we_i),
-        .v_data_i   (r_gpu_data),
-        .v_addr_i   (r_gpu_addr),
-        // .addr_o     ()
-        .Hsync      (Hsync),
-        .Vsync      (Vsync),
-        .vgaRed     (vgaRed), 
-        .vgaGreen   (vgaGreen), 
-        .vgaBlue    (vgaBlue)
+       .clk        (s_clk),
+       .v_we_i     (v_we_i),
+       .v_data_i   (r_gpu_data),
+       .v_addr_i   (r_gpu_addr),
+       .hsync_o    (Hsync),
+       .vsync_o    (Vsync),
+       .vgaRed_o   (vgaRed), 
+       .vgaGreen_o (vgaGreen), 
+       .vgaBlue_o  (vgaBlue)
     );
 
     //- Divide clk by 2 

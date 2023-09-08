@@ -58,22 +58,26 @@
     ); 
            
     (* rom_style="{distributed | block}" *)
-    (* ram_decomp = "power" *) logic [7:0] memory [0:32767]; // 8k x 32 bit memory or 32k x 8 bit memory
+    (* ram_decomp = "power" *) logic [7:0] memory [0:32767]; // 32k x 8 bit memory // data must be in HEX
     
+    initial begin
+        $readmemh("gpu_mem.mem", memory, 0, 32767);
+    end
     
     // BRAM requires all reads and writes to occur synchronously
+    always_comb begin
+        
+        
+        // read all data synchronously required for BRAM
+            MEM_DOUT1 = memory[MEM_ADDR1] & {8{MEM_RDEN1}}; // 0 - 30k
+            MEM_DOUT2 = memory[MEM_ADDR2] & {8{MEM_RDEN2}};
+    end
+
     always_ff @(posedge MEM_CLK) begin
         // save data (WD) to memory (ADDR2)
         if (MEM_WE2 == 1) begin  // write enable
             memory[MEM_ADDR2] <= MEM_DIN2;      // store data at addr
         end
-        
-        // read all data synchronously required for BRAM
-        if(MEM_RDEN1)                       // need EN for extra load cycle to not change instruction
-            MEM_DOUT1 <= memory[MEM_ADDR1]; // 0 - 30k
-
-        if(MEM_RDEN2)                         // Read word from memory
-            MEM_DOUT2 <= memory[MEM_ADDR2];
     end
         
  endmodule

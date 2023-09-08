@@ -1,21 +1,44 @@
+//////////////////////////////////////////////////////////////////////////////////
+// Company: DFX Company     <---- TODO Replace with Better Name and elsewhere 
+// Engineer: Daniel Gutierrez
+// 
+// Create Date: 09/07/2023 07:08:48 PM
+// Design Name: vga.v
+// Module Name: vga
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: VGA Timing for 800x600 @ 72Hz
+//              Uses 50MHz clock
+// 
+// 
+// 
+// Instantiation Template: 
+//
+//     vga my_vga (
+//         .clk          (),
+//         .h_sync_o     (),
+//         .v_sync_o     (),
+//         .in_disp_o    (),
+//         .pixel_pos_o  ()
+//     );
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
 // // instanciate 
-// vga my_vga (
-//     .clk        (),
-//     .h_pixel    (),
-//     .in_h_sync  (),
-//     .v_pixel    (),
-//     .in_v_sync  ()
-//     .in_vis     ()
-// );
+
 //  
 
 module vga ( 
-    input clk,
-    output in_h_sync , 
-    output [7:0] h_pixel,
-    output in_v_sync,
-    output [7:0] v_pixel,
-    output in_vis
+    input clk,          // 50MHz
+    output h_sync_o,    // active low
+    output v_sync_o,    // active low
+    output in_disp_o,
+    output [15:0] pixel_pos_o
     );
 
     reg [10:0] h_pixel_800;   
@@ -23,7 +46,7 @@ module vga (
     reg v_clk;
     always @(posedge clk)
     begin 
-        if (h_pixel_800 != 1039) begin
+        if (h_pixel_800 < 1040 - 1) begin
             h_pixel_800 <= h_pixel_800 + 1;
             v_clk <= 0;
         end
@@ -32,18 +55,17 @@ module vga (
             v_clk <= 1;
         end
     end
-    assign in_h_sync = ~((h_pixel_800 >= 800 + 56) && (h_pixel_800 < 800 + 56 + 120));
+    assign h_sync_o = ~((h_pixel_800 >= 800 + 56) && (h_pixel_800 < 800 + 56 + 120));
 
     always @(posedge v_clk)
     begin
-        if (v_pixel_600 != 665)
+        if (v_pixel_600 < 666 - 1)
             v_pixel_600 <= v_pixel_600 + 1;
         else
             v_pixel_600 <= 0;
     end
-    assign in_v_sync = ~((v_pixel_600 >= 600 + 37) && (v_pixel_600 < 600 + 37 + 6));
+    assign v_sync_o = ~((v_pixel_600 >= 600 + 37) && (v_pixel_600 < 600 + 37 + 6));
 
-    assign in_vis = (h_pixel_800 >= 0) && (h_pixel_800 < 800) && (v_pixel_600 >= 0) && (v_pixel_600 < 600); // visible area
-    assign h_pixel = h_pixel_800[9:2];  // mapped to 8 bits
-    assign v_pixel = v_pixel_600[9:2];  // mapped to 8 bits
+    assign in_disp_o = (h_pixel_800 >= 0) && (h_pixel_800 <= 799) && (v_pixel_600 >= 0) && (v_pixel_600 <= 599);   
+    assign pixel_pos_o = {v_pixel_600[9:2], h_pixel_800[9:2]};          // top byte is y, bottom byte is x
 endmodule
