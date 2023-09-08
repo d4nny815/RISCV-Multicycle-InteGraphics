@@ -4,7 +4,7 @@
 #
 #====================
 init:
-    li s0, 0x1100C000   # led addr
+    li s0, 0x1100C000       # led addr
 
     la t0, ISR              # load ISR address into t0
     csrrw zero, mtvec, t0   # set mtvec to ISR address
@@ -18,21 +18,31 @@ init:
 
     li a0, 1                # cur led val
     li a1, 0x8000           # max led pos
-    sw s0, 0(a0)            # store led val to leds
+    sw a0, 0(s0)            # store led val to leds
+    mv a7, zero             # clear interrupt flag
+
 
 unmask:
     li t0, 0x8              # enable interrupts
     csrrs zero, mstatus, t0 # enable interrupts
 
 main:
-    j main                  # wait for intr 
+    nop                     # wait for interrupt
+    beq zero, a7, main      # wait for intr
+
+shift:
+    slli a0, a0, 1          # move led pos to left
+    sw a0, 0(s0)            # save to leds
+    li a7, 0                # clear interrupt flag
+    bne a1, a0, unmask      # return if not max
+    li a0, 1                # reset led pos
+    j unmask                # reset intr flag
 #--------------------------------------------------------------
 # Interrupt Service Routine
 #  desc: move led to left
 #--------------------------------------------------------------
 ISR:
-    slli a0, a0, 1          # move led pos to left
-    bne a1, a0, ISR_ret     # return if not max
-    li a0, 1                # reset led pos
-ISR_ret:
-    mret                    # bring it home
+    li a7, 1                    # set interrupt flag
+    li t2, 0x80                 # clear MPIE
+    csrrc zero, mstatus, t2     # clear MPIE
+    mret                        # return from interrupt

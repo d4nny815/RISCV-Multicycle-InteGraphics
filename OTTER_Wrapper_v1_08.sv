@@ -27,7 +27,7 @@
 module OTTER_Wrapper(   
     input clk,              // 100 MHz clock
     input [4:0] buttons,  
-    input [15:0] switches, 
+    input [15:0] switches,  
     output logic [15:0] leds,
     output logic [7:0] segs, 
     output logic [3:0] an,
@@ -97,7 +97,7 @@ module OTTER_Wrapper(
     //- Instantiate RISC-V OTTER MCU 
     OTTER_MCU my_otter(
         .RST        (s_reset),  
-        .intr       (s_tc_intr | s_interrupt),
+        .intr       (s_tc_intr | s_interrupt), // not working properly
         .clk        (s_clk),  
         .iobus_in   (IOBUS_in),  
         .iobus_out  (IOBUS_out),  
