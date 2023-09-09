@@ -37,16 +37,16 @@ module OTTER_Wrapper(
     );
          
     //- INPUT PORT IDS ---------------------------------------------------------
-    localparam SWITCHES_PORT_ADDR = 32'h11008000;  // 0x1100_8000
+    localparam GPU_VRAM_DATA_IN_ADDR = 32'h11008000;         // 0x1100_8000
     localparam BUTTONS_PORT_ADDR  = 32'h11008004;  // 0x1100_8004
-    localparam GPU_DATA_IN        = 32'h11008008;  // 0x1100_8008
+    localparam SWITCHES_PORT_ADDR = 32'h11008008;  // 0x1100_8008
 
                   
     //- OUTPUT PORT IDS --------------------------------------------------------
     localparam LEDS_PORT_ADDR     = 32'h1100C000;  // 0x1100_C000 
     localparam SEGS_PORT_ADDR     = 32'h1100C004;  // 0x1100_C004
     localparam ANODES_PORT_ADDR   = 32'h1100C008;  // 0x1100_C008
-    localparam GPU_IN_ADDR        = 32'h1100C00C;  // 0x1100_C00C
+    localparam GPU_VRAM_OUT_ADDR  = 32'h1100C00C;  // 0x1100_C00C
     localparam GPU_OUT_DATA       = 32'h1100C010;  // 0x1100_C010
      
     //- Signals for connecting OTTER_MCU to OTTER_wrapper 
@@ -138,7 +138,7 @@ module OTTER_Wrapper(
                 TMR_CNTR_CSR_ADDR:    r_tc_csr  <= IOBUS_out[7:0];
                 TMR_CNTR_CNT_IN_ADDR: r_tc_cnt_in <= IOBUS_out[31:0];
 
-                GPU_IN_ADDR: r_gpu_addr <= IOBUS_out[15:0];
+                GPU_VRAM_OUT_ADDR: r_gpu_addr <= IOBUS_out[15:0];
 
                 GPU_OUT_DATA: begin
                     r_gpu_addr <= IOBUS_out[15:0];
@@ -155,11 +155,11 @@ module OTTER_Wrapper(
     always_comb begin
         IOBUS_in = 32'b0; 
         case(IOBUS_addr)
-            SWITCHES_PORT_ADDR: IOBUS_in[15:0] = switches;
-            BUTTONS_PORT_ADDR:  IOBUS_in[4:0] = buttons;
-            TMR_CNTR_CNT_OUT:   IOBUS_in[31:0] = s_tc_cnt_out;
-            GPU_DATA_IN:        IOBUS_in[11:0] = s_vram_data;
-            default:            IOBUS_in = 32'b0;
+            GPU_VRAM_DATA_IN_ADDR:  IOBUS_in[11:0] = s_vram_data;
+            BUTTONS_PORT_ADDR:      IOBUS_in[4:0] = buttons;
+            TMR_CNTR_CNT_OUT:       IOBUS_in[31:0] = s_tc_cnt_out;
+            SWITCHES_PORT_ADDR:     IOBUS_in[15:0] = switches;
+            default:                IOBUS_in = 32'b0;
         endcase
     end
     

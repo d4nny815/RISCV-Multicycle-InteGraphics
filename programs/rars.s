@@ -2,7 +2,7 @@
 init:
     li s0, 0x1100C010               # GPU_DATA_ADDR_OUT
     li s1, 0x1100C00C               # GPU_ADDR_IN addr.  have to output addr to GPU first
-    li s2, 0x11008008               # GPU_DATA_IN addr.  load pixel data in from GPU
+    li s2, 0x11008000               # GPU_DATA_IN addr.  load pixel data in from GPU
     li s3, 0x11008004               # BTN_IN addr
 
     li s11, 200                     # DISPLAY WIDTH
@@ -11,18 +11,8 @@ init:
     li a7, 0                        # btn press counter
 
 btn_press_poll:
-#     lb t0, 0(s3)                    # read btn press
-#     beq zero, t0, btn_press_poll    # wait for btn
-#     call debounce
-#     lb t0, 0(s3)
-#     beq zero, t0, btn_press_poll    # wait for btn
-
-# debounce:
-#     li t0, 0xFF
-# debounce_loop:
-#     addi t0, t0, -1
-#     bne t0, zero, debounce_loop
-#     ret
+    lb t0, 0(s3)                    # read btn press
+    beq zero, t0, btn_press_poll    # wait for btn
 
     li a6, 0                        # v_pixel
 v_loop:
