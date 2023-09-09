@@ -65,6 +65,7 @@
     end
     
     // BRAM requires all reads and writes to occur synchronously
+    // Using LUTRAM to get async reads
     always_comb begin
         
         
@@ -73,7 +74,18 @@
             MEM_DOUT2 = memory[MEM_ADDR2] & {8{MEM_RDEN2}};
     end
 
+    // BRAM requires all reads and writes to occur synchronously
     always_ff @(posedge MEM_CLK) begin
+
+        // NOT USING BRAM CURRENTLY
+        // // read all data synchronously required for BRAM
+        // if(MEM_RDEN1)                      
+        //     MEM_DOUT1 <= memory[MEM_ADDR1];
+
+        // if(MEM_RDEN2)                      
+        //     MEM_OUT2 <= memory[MEM_ADDR2];
+
+
         // save data (WD) to memory (ADDR2)
         if (MEM_WE2 == 1) begin  // write enable
             memory[MEM_ADDR2] <= MEM_DIN2;      // store data at addr
