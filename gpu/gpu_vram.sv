@@ -46,45 +46,32 @@
                                                                                                                              
   module VIDEO_MEMORY (
     input MEM_CLK,
-    input MEM_RDEN1,        // read enable data1
-    input MEM_RDEN2,        // read enable data2
-    input MEM_WE2,          // write enable.
-    input [14:0] MEM_ADDR1, // data1 memory address
-    input [14:0] MEM_ADDR2, // data2 memory address
-    input [7:0] MEM_DIN2,   // Data to save (1px)
-
-    output logic [7:0] MEM_DOUT1, // data1 memory output
-    output logic [7:0] MEM_DOUT2  // data2 memory output
+    input MEM_RDEN1,            // read enable data1
+    input MEM_RDEN2,            // read enable data2
+    input MEM_WE2,              // write enable.
+    input [14:0] MEM_ADDR1,     // data1 memory address
+    input [14:0] MEM_ADDR2,     // data2 memory address
+    input [11:0] MEM_DIN2,      // Data to save (1px)
+    output logic [11:0] MEM_DOUT1, // data1 memory output
+    output logic [11:0] MEM_DOUT2  // data2 memory output
     ); 
            
     (* rom_style="{distributed | block}" *)
-    (* ram_decomp = "power" *) logic [7:0] memory [0:32767]; // 32k x 8 bit memory // data must be in HEX
+    (* ram_decomp = "power" *) logic [11:0] memory [0:30000]; // 32k x 8 bit memory // data must be in HEX
     
     initial begin
-        $readmemh("gpu_mem.mem", memory, 0, 32767);
+        $readmemh("gpu_mem.mem", memory, 0, 30000);
     end
     
-    // BRAM requires all reads and writes to occur synchronously
-    // Using LUTRAM to get async reads
-    always_comb begin
-        
-        
-        // read all data synchronously required for BRAM
-            MEM_DOUT1 = memory[MEM_ADDR1] & {8{MEM_RDEN1}}; // 0 - 30k
-            MEM_DOUT2 = memory[MEM_ADDR2] & {8{MEM_RDEN2}};
-    end
 
     // BRAM requires all reads and writes to occur synchronously
     always_ff @(posedge MEM_CLK) begin
+        // read all data synchronously required for BRAM
+        if(MEM_RDEN1)                      
+            MEM_DOUT1 <= memory[MEM_ADDR1];
 
-        // NOT USING BRAM CURRENTLY
-        // // read all data synchronously required for BRAM
-        // if(MEM_RDEN1)                      
-        //     MEM_DOUT1 <= memory[MEM_ADDR1];
-
-        // if(MEM_RDEN2)                      
-        //     MEM_OUT2 <= memory[MEM_ADDR2];
-
+        if(MEM_RDEN2)                      
+            MEM_DOUT2 <= memory[MEM_ADDR2];
 
         // save data (WD) to memory (ADDR2)
         if (MEM_WE2 == 1) begin  // write enable

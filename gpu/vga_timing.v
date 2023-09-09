@@ -33,12 +33,12 @@
 
 //  
 
-module vga ( 
+module vga_timing ( 
     input clk,          // 50MHz
     output h_sync_o,    // active low
     output v_sync_o,    // active low
     output in_disp_o,
-    output [15:0] pixel_pos_o
+    output [15:0] pixel_addr_o
     );
 
     reg [10:0] h_pixel_800;   
@@ -67,5 +67,5 @@ module vga (
     assign v_sync_o = ~((v_pixel_600 >= 600 + 37) && (v_pixel_600 < 600 + 37 + 6));
 
     assign in_disp_o = (h_pixel_800 >= 0) && (h_pixel_800 <= 799) && (v_pixel_600 >= 0) && (v_pixel_600 <= 599);   
-    assign pixel_pos_o = {v_pixel_600[9:2], h_pixel_800[9:2]};          // top byte is y, bottom byte is x
+    assign pixel_addr_o = {v_pixel_600[9:2], h_pixel_800[9:2]};          // top byte is y, bottom byte is x
 endmodule

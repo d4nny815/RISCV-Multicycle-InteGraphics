@@ -38,14 +38,16 @@ module OTTER_Wrapper(
          
     //- INPUT PORT IDS ---------------------------------------------------------
     localparam SWITCHES_PORT_ADDR = 32'h11008000;  // 0x1100_8000
-    localparam BUTTONS_PORT_ADDR  = 32'h11008004;  // 0x1100_8004  
+    localparam BUTTONS_PORT_ADDR  = 32'h11008004;  // 0x1100_8004
+    localparam GPU_DATA_IN        = 32'h11008008;  // 0x1100_8008
+
                   
     //- OUTPUT PORT IDS --------------------------------------------------------
     localparam LEDS_PORT_ADDR     = 32'h1100C000;  // 0x1100_C000 
     localparam SEGS_PORT_ADDR     = 32'h1100C004;  // 0x1100_C004
     localparam ANODES_PORT_ADDR   = 32'h1100C008;  // 0x1100_C008
-    localparam GPU_PIXEL_ADDR     = 32'h1100C00C;  // 0x1100_C00C
-    localparam GPU_PIXEL_DATA     = 32'h1100C010;  // 0x1100_C010
+    localparam GPU_IN_ADDR        = 32'h1100C00C;  // 0x1100_C00C
+    localparam GPU_OUT_DATA       = 32'h1100C010;  // 0x1100_C010
      
     //- Signals for connecting OTTER_MCU to OTTER_wrapper 
     logic s_interrupt;  
@@ -63,9 +65,11 @@ module OTTER_Wrapper(
     logic [3:0]  r_an;     //  register for display enables (anodes)
    
     // GPU registers
-    logic [14:0] r_gpu_addr;    //  register for GPU VRAM address
-    logic [7:0] r_gpu_data;     //  register for GPU VRAM data
-    logic v_we_i;               //  write enable for GPU VRAM
+    logic [15:0] r_gpu_addr;     //  register for GPU VRAM address
+    logic [11:0] r_gpu_data;     //  register for GPU VRAM data
+    logic vram_we;               //  write enable for GPU VRAM
+    logic vram_re;               //  read enable for GPU VRAM
+    logic [11:0] s_vram_data;    //  data from gpu to cpu
 
     
     assign s_interrupt = buttons[4];  // for btn(4) connecting to interrupt
@@ -90,7 +94,7 @@ module OTTER_Wrapper(
         .clk        (s_clk), 
         .tc_cnt_in  (r_tc_cnt_in),
         .tc_csr     (r_tc_csr),
-        .tc_intr    (s_tc_intr),
+        .tc_intr    (s_tc_intr), 
         .tc_cnt_out (s_tc_cnt_out)  
     );
     
@@ -105,17 +109,18 @@ module OTTER_Wrapper(
         .iobus_wr   (IOBUS_wr)
     );
     
-    
     GPU dxt1010(
-       .clk        (s_clk),
-       .v_we_i     (v_we_i),
-       .v_data_i   (r_gpu_data),
-       .v_addr_i   (r_gpu_addr),
-       .hsync_o    (Hsync),
-       .vsync_o    (Vsync),
-       .vgaRed_o   (vgaRed), 
-       .vgaGreen_o (vgaGreen), 
-       .vgaBlue_o  (vgaBlue)
+       .clk         (s_clk),
+       .vram_we_i   (vram_we),
+       .vram_re_i   (1'b1),  
+       .vram_data_i (r_gpu_data),
+       .vram_addr_i (r_gpu_addr),
+       .vram_data_o (s_vram_data), 
+       .hsync_o     (Hsync),
+       .vsync_o     (Vsync),
+       .vgaRed_o    (vgaRed), 
+       .vgaGreen_o  (vgaGreen), 
+       .vgaBlue_o   (vgaBlue)
     );
 
     //- Divide clk by 2 
@@ -125,19 +130,22 @@ module OTTER_Wrapper(
     //- Drive dev board output devices with registers 
     always_ff @ (posedge s_clk) begin
         if (IOBUS_wr == 1) begin 
-            v_we_i <= 0; 
+            vram_we <= 0; 
             case(IOBUS_addr)
                 LEDS_PORT_ADDR:   r_leds <= IOBUS_out[15:0];    
                 SEGS_PORT_ADDR:   r_segs <= IOBUS_out[7:0];
                 ANODES_PORT_ADDR: r_an   <= IOBUS_out[3:0];
                 TMR_CNTR_CSR_ADDR:    r_tc_csr  <= IOBUS_out[7:0];
                 TMR_CNTR_CNT_IN_ADDR: r_tc_cnt_in <= IOBUS_out[31:0];
-                GPU_PIXEL_ADDR: r_gpu_addr <= IOBUS_out[14:0]; 
-                GPU_PIXEL_DATA: begin 
-                    r_gpu_data <= IOBUS_out[7:0];
-                    v_we_i <= 1'b1; 
-                end             
-             endcase
+
+                GPU_IN_ADDR: r_gpu_addr <= IOBUS_out[15:0];
+
+                GPU_OUT_DATA: begin
+                    r_gpu_addr <= IOBUS_out[15:0];
+                    r_gpu_data <= IOBUS_out[27:16];
+                    vram_we <= 1'b1;
+                end           
+            endcase
          end 
      end
      
@@ -149,7 +157,8 @@ module OTTER_Wrapper(
         case(IOBUS_addr)
             SWITCHES_PORT_ADDR: IOBUS_in[15:0] = switches;
             BUTTONS_PORT_ADDR:  IOBUS_in[4:0] = buttons;
-            TMR_CNTR_CNT_OUT:   IOBUS_in[31:0] = s_tc_cnt_out; 
+            TMR_CNTR_CNT_OUT:   IOBUS_in[31:0] = s_tc_cnt_out;
+            GPU_DATA_IN:        IOBUS_in[11:0] = s_vram_data;
             default:            IOBUS_in = 32'b0;
         endcase
     end
