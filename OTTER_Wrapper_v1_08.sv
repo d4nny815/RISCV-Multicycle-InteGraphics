@@ -33,13 +33,13 @@ module OTTER_Wrapper(
     output logic [3:0] an,
     output Hsync,
     output Vsync,
-    output logic [3:0] vgaRed, vgaGreen, vgaBlue    
+    output logic [3:0] vgaRed, vgaGreen, vgaBlue     
     );
          
     //- INPUT PORT IDS ---------------------------------------------------------
-    localparam GPU_VRAM_DATA_IN_ADDR = 32'h11008000;         // 0x1100_8000
-    localparam BUTTONS_PORT_ADDR  = 32'h11008004;  // 0x1100_8004
-    localparam SWITCHES_PORT_ADDR = 32'h11008008;  // 0x1100_8008
+    localparam GPU_VRAM_DATA_IN_ADDR = 32'h11008000; // 0x1100_8000
+    localparam BUTTONS_PORT_ADDR  = 32'h11008004;    // 0x1100_8004
+    localparam SWITCHES_PORT_ADDR = 32'h11008008;    // 0x1100_8008
 
                   
     //- OUTPUT PORT IDS --------------------------------------------------------
@@ -72,8 +72,13 @@ module OTTER_Wrapper(
     logic [11:0] s_vram_data;    //  data from gpu to cpu
 
     
-    assign s_interrupt = buttons[4];  // for btn(4) connecting to interrupt
-    assign s_reset = buttons[3];      // for btn(3) connecting to reset 
+    assign s_interrupt = buttons[4];  // for btn(4) connecting to interrupt. Bottom button
+    assign s_reset = buttons[3];      // for btn(3) connecting to reset
+
+    // Signals for the DeBouncer
+    logic db_out;
+    // Signals for the One-Shot
+    logic pos_pulse_out; 
 
     //- timer-counter input support
     localparam TMR_CNTR_CNT_OUT  = 32'h11008008;   // 0x1100_8004
@@ -87,7 +92,18 @@ module OTTER_Wrapper(
     logic [31:0] s_tc_cnt_out; 
     logic s_tc_intr; 
 
+    DBounce #(.n(3)) my_dbounce( 
+        .clk (s_clk),
+        .sig_in (s_interrupt),
+        .DB_out (db_out)
+    );
 
+    one_shot_bdir #(.n(3)) my_oneshot (
+        .clk (s_clk),
+        .sig_in (db_out),
+        .pos_pulse_out (pos_pulse_out),
+        .neg_pulse_out ()  
+    );
     
     // instantiate the timer-counter module  
     timer_counter #(.n(3))  my_tc (
@@ -101,7 +117,7 @@ module OTTER_Wrapper(
     //- Instantiate RISC-V OTTER MCU 
     OTTER_MCU my_otter(
         .RST        (s_reset),  
-        .intr       (s_tc_intr | s_interrupt), // not working properly
+        .intr       (s_tc_intr | pos_pulse_out), // not working properly
         .clk        (s_clk),  
         .iobus_in   (IOBUS_in),  
         .iobus_out  (IOBUS_out),  
