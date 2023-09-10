@@ -17,7 +17,7 @@ h_loop:
     li t0, 0xFFF                    # pixel is 12 bits
     and a0, a0, t0                  # get bottom 12 bits
 
-    addi sp, sp, -2                 # allocate space for half word
+    addi sp, sp, -4                 # allocate space for half word
     sh a0, 0(sp)                    # place pixel data on stack
 
     addi s4, s4, 1

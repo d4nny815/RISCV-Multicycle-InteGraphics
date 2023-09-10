@@ -59,8 +59,8 @@ module otter_tb();
       switches = 0; buttons = 0;
       #1000;
       
-      buttons = 5'b10000;
-      #30
+//      buttons = 5'b10000;
+//      #30
 //      buttons = 0;
 //      #400;
 //      buttons = 5'b10000;
