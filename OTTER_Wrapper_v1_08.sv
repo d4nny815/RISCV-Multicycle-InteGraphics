@@ -37,7 +37,7 @@ module OTTER_Wrapper(
     ); 
          
     //- INPUT PORT IDS ---------------------------------------------------------
-    localparam GPU_VRAM_DATA_IN_ADDR = 32'h11008000; // 0x1100_8000
+    localparam GPU_VRAM_DATA_IN_ADDR = 32'h11008000; // 0x1100_8000  
     localparam BUTTONS_PORT_ADDR  = 32'h11008004;    // 0x1100_8004
     localparam SWITCHES_PORT_ADDR = 32'h11008008;    // 0x1100_8008  
                   
@@ -55,7 +55,7 @@ module OTTER_Wrapper(
  
     logic [31:0] IOBUS_out;
     logic [31:0] IOBUS_in;   
-    logic [31:0] IOBUS_addr; 
+    logic [31:0] IOBUS_addr;  
     logic IOBUS_wr;   
         
     //- register for dev board output devices ---------------------------------
