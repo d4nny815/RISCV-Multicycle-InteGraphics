@@ -27,20 +27,19 @@
 module OTTER_Wrapper(   
     input clk,              // 100 MHz clock
     input [4:0] buttons,  
-    input [15:0] switches,  
+    input [15:0] switches,   
     output logic [15:0] leds,
-    output logic [7:0] segs, 
+    output logic [7:0] segs,  
     output logic [3:0] an,
     output Hsync,
     output Vsync,
     output logic [3:0] vgaRed, vgaGreen, vgaBlue     
-    );
+    ); 
          
     //- INPUT PORT IDS ---------------------------------------------------------
     localparam GPU_VRAM_DATA_IN_ADDR = 32'h11008000; // 0x1100_8000
     localparam BUTTONS_PORT_ADDR  = 32'h11008004;    // 0x1100_8004
-    localparam SWITCHES_PORT_ADDR = 32'h11008008;    // 0x1100_8008
-
+    localparam SWITCHES_PORT_ADDR = 32'h11008008;    // 0x1100_8008  
                   
     //- OUTPUT PORT IDS --------------------------------------------------------
     localparam LEDS_PORT_ADDR     = 32'h1100C000;  // 0x1100_C000 
@@ -55,7 +54,7 @@ module OTTER_Wrapper(
     logic s_clk = 0;            // 50 MHz clock
  
     logic [31:0] IOBUS_out;
-    logic [31:0] IOBUS_in;  
+    logic [31:0] IOBUS_in;   
     logic [31:0] IOBUS_addr; 
     logic IOBUS_wr;   
         
@@ -160,7 +159,7 @@ module OTTER_Wrapper(
                     r_gpu_addr <= IOBUS_out[15:0];
                     r_gpu_data <= IOBUS_out[27:16];
                     vram_we <= 1'b1;
-                end           
+                end            
             endcase
          end 
      end

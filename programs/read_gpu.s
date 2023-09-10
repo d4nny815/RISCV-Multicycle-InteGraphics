@@ -7,6 +7,9 @@ init:
     li s3, 0xFFF                    # test
     li s4, 0                        # accum
 
+    li s11, 200
+    li s10, 150
+
     li a6, 0                        # v_pixel
 v_loop:
     li a5, 0                        # h_pixel

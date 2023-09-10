@@ -75,6 +75,22 @@ get_addr:
     or a1, a1, a5                   # bottom byte is h_pixel
     ret   
 
+# =================================
+#   Program: 
+#   Desription: 
+#   PARAMS: 
+#           
+#   RETURN:
+#           
+# =================================
+invert_pixel:
+    li t0, 0xFFF                    # pixel is 12 bits
+    and a0, a0, t0                  # get bottom 12 bits
+    xor a0, a0, t0                  # invert every bit
+
+
+output_pixel:
+
 #--------------------------------------------------------------
 # Interrupt Service Routine
 #  desc: blinks LED

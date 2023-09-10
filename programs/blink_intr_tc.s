@@ -1,6 +1,6 @@
 .text
 init:
-    li s10, 0x1100C000           # addr for leds
+    li s10, 0x1100C000          # addr for leds
     li s0, 0x1100D000           # TC CSR port address
     li s1, 0x1100D004           # TC count port address
 
