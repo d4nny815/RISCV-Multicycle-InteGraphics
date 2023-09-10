@@ -23,7 +23,7 @@
 
 
 module OTTER_MCU(
-    input RST,
+    input RST, 
     input intr,
     input [31:0] iobus_in,
     input clk,

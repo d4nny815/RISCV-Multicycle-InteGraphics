@@ -30,28 +30,28 @@ module OTTER_Wrapper(
     input [15:0] switches,   
     output logic [15:0] leds,
     output logic [7:0] segs,  
-    output logic [3:0] an,
+    output logic [3:0] an, 
     output Hsync,
     output Vsync,
     output logic [3:0] vgaRed, vgaGreen, vgaBlue     
     ); 
          
     //- INPUT PORT IDS ---------------------------------------------------------
-    localparam GPU_VRAM_DATA_IN_ADDR = 32'h11008000; // 0x1100_8000  
-    localparam BUTTONS_PORT_ADDR  = 32'h11008004;    // 0x1100_8004
-    localparam SWITCHES_PORT_ADDR = 32'h11008008;    // 0x1100_8008  
+    localparam GPU_READ_DATA          = 32'h11008000;  // 0x11008000  
+    localparam BUTTONS_PORT_ADDR      = 32'h11008004;  // 0x11008004
+    localparam SWITCHES_PORT_ADDR     = 32'h11000004;  // 0x11000004  
                   
     //- OUTPUT PORT IDS --------------------------------------------------------
-    localparam LEDS_PORT_ADDR     = 32'h1100C000;  // 0x1100_C000 
-    localparam SEGS_PORT_ADDR     = 32'h1100C004;  // 0x1100_C004
-    localparam ANODES_PORT_ADDR   = 32'h1100C008;  // 0x1100_C008
-    localparam GPU_VRAM_OUT_ADDR  = 32'h1100C00C;  // 0x1100_C00C
-    localparam GPU_OUT_DATA       = 32'h1100C010;  // 0x1100_C010
+    localparam LEDS_PORT_ADDR         = 32'h1100C000;  // 0x1100C000 
+    localparam SEGS_PORT_ADDR         = 32'h1100C004;  // 0x1100C004
+    localparam ANODES_PORT_ADDR       = 32'h1100C008;  // 0x1100C008
+    localparam GPU_READ_ADDR          = 32'h1100C00C;  // 0x1100C00C
+    localparam GPU_WRITE_DATA_N_ADDR  = 32'h1100C010;  // 0x1100C010
      
     //- Signals for connecting OTTER_MCU to OTTER_wrapper 
     logic s_interrupt;  
     logic s_reset;           
-    logic s_clk = 0;            // 50 MHz clock
+    logic CLK_50MHz = 0;            // 50 MHz clock
  
     logic [31:0] IOBUS_out;
     logic [31:0] IOBUS_in;   
@@ -92,13 +92,13 @@ module OTTER_Wrapper(
     logic s_tc_intr; 
 
     DBounce #(.n(3)) my_dbounce( 
-        .clk (s_clk),
+        .clk (CLK_50MHz),
         .sig_in (s_interrupt),
         .DB_out (db_out)
     );
 
     one_shot_bdir #(.n(3)) my_oneshot (
-        .clk (s_clk),
+        .clk (CLK_50MHz),
         .sig_in (db_out),
         .pos_pulse_out (pos_pulse_out),
         .neg_pulse_out ()  
@@ -106,7 +106,7 @@ module OTTER_Wrapper(
     
     // instantiate the timer-counter module  
     timer_counter #(.n(3))  my_tc (
-        .clk        (s_clk), 
+        .clk        (CLK_50MHz), 
         .tc_cnt_in  (r_tc_cnt_in),
         .tc_csr     (r_tc_csr),
         .tc_intr    (s_tc_intr), 
@@ -116,8 +116,8 @@ module OTTER_Wrapper(
     //- Instantiate RISC-V OTTER MCU 
     OTTER_MCU my_otter(
         .RST        (s_reset),  
-        .intr       (s_tc_intr | pos_pulse_out), // not working properly
-        .clk        (s_clk),  
+        .intr       (s_tc_intr | pos_pulse_out),
+        .clk        (CLK_50MHz),  
         .iobus_in   (IOBUS_in),  
         .iobus_out  (IOBUS_out),  
         .iobus_addr (IOBUS_addr),
@@ -125,7 +125,7 @@ module OTTER_Wrapper(
     );
     
     GPU dxt1010(
-       .clk         (s_clk),
+       .clk         (CLK_50MHz),
        .vram_we_i   (vram_we),
        .vram_re_i   (1'b1),  
        .vram_data_i (r_gpu_data),
@@ -140,10 +140,10 @@ module OTTER_Wrapper(
 
     //- Divide clk by 2 
     always_ff @ (posedge clk)
-        s_clk <= ~s_clk;
+        CLK_50MHz <= ~CLK_50MHz;
    
     //- Drive dev board output devices with registers 
-    always_ff @ (posedge s_clk) begin
+    always_ff @ (posedge CLK_50MHz) begin
         if (IOBUS_wr == 1) begin 
             vram_we <= 0; 
             case(IOBUS_addr)
@@ -152,10 +152,8 @@ module OTTER_Wrapper(
                 ANODES_PORT_ADDR: r_an   <= IOBUS_out[3:0];
                 TMR_CNTR_CSR_ADDR:    r_tc_csr  <= IOBUS_out[7:0];
                 TMR_CNTR_CNT_IN_ADDR: r_tc_cnt_in <= IOBUS_out[31:0];
-
-                GPU_VRAM_OUT_ADDR: r_gpu_addr <= IOBUS_out[15:0];
-
-                GPU_OUT_DATA: begin
+                GPU_READ_ADDR: r_gpu_addr <= IOBUS_out[15:0];
+                GPU_WRITE_DATA_N_ADDR: begin
                     r_gpu_addr <= IOBUS_out[15:0];
                     r_gpu_data <= IOBUS_out[27:16];
                     vram_we <= 1'b1;
@@ -170,7 +168,7 @@ module OTTER_Wrapper(
     always_comb begin
         IOBUS_in = 32'b0; 
         case(IOBUS_addr)
-            GPU_VRAM_DATA_IN_ADDR:  IOBUS_in[11:0] = s_vram_data;
+            GPU_READ_DATA:          IOBUS_in[11:0] = s_vram_data;
             BUTTONS_PORT_ADDR:      IOBUS_in[4:0] = buttons;
             TMR_CNTR_CNT_OUT:       IOBUS_in[31:0] = s_tc_cnt_out;
             SWITCHES_PORT_ADDR:     IOBUS_in[15:0] = switches;
