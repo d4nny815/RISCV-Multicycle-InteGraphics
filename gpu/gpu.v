@@ -18,7 +18,7 @@
 //    GPU my_GPU(
     //    .clk         (),
     //    .vram_we_i   (),
-    //    .vram_re_i   ()
+    //    .vram_re_i   (), 
     //    .vram_data_i (),
     //    .vram_addr_i (),
     //    .vram_data_o ()
@@ -56,19 +56,22 @@ module GPU(
     wire in_disp;
     wire [11:0] pixel_data;
     wire [15:0] pixel_addr;
-
+    wire [14:0] vram_read_addr, vram_write_addr;
 
     VIDEO_MEMORY my_vram (
         .MEM_CLK   (clk),
         .MEM_RDEN1 (in_disp), 
         .MEM_RDEN2 (vram_re_i),  
         .MEM_WE2   (vram_we_i),
-        .MEM_ADDR1 ((pixel_addr[15:8] * 200 + pixel_addr[7:0]) & {15{in_disp}}),  // maps 16b addr from vga_timing to location in MEM for 200x150
-        .MEM_ADDR2 (vram_addr_i[15:8] * 200 + vram_addr_i[7:0]),  // maps 16b addr from cpu to location in MEM
+        .MEM_ADDR1 (vram_read_addr),  
+        .MEM_ADDR2 (vram_write_addr), 
         .MEM_DIN2  (vram_data_i),  
-        .MEM_DOUT1 (pixel_data),  // vga_data
+        .MEM_DOUT1 (pixel_data),  
         .MEM_DOUT2 (vram_data_o)  
     );
+
+    assign vram_read_addr = (pixel_addr[15:8] * 200 + pixel_addr[7:0]) & {15{in_disp}};
+    assign vram_write_addr = vram_addr_i[15:8] * 200 + vram_addr_i[7:0];
 
     vga_timing my_VGA_timing(
         .clk            (clk),        
