@@ -2,16 +2,16 @@
 //////////////////////////////////////////////////////////////////////////////////
 // Company:   Ratner Surf Designs
 // Engineer:  James Ratner, Joseph Callenes-Sloan, Paul Hummel, Celina Lazaro
-// 
-// Create Date: 11/14/2018 02:46:31 PM
-// Design Name: 
-// Module Name: OTTER_Wrapper
-// Project Name: 
+//    
+// Create Date: 11/14/2018 02:46:31 PM 
+// Design Name:  
+// Module Name: OTTER_Wrapper 
+// Project Name:  
 // Target Devices: 
 // Tool Versions: 
 // Description: Otter Wrapper: interfaces RISC-V OTTER to basys3 board. 
 //
-// Dependencies: 
+// Dependencies:   
 // 
 // Revision:
 // Revision 1.02 - (02-02-2020): first released version; not fully tested
@@ -23,14 +23,14 @@
 //          1.08 - (05-01-2023): fixed indetation and formatting
 //            
 //////////////////////////////////////////////////////////////////////////////////
-
+ 
 module OTTER_Wrapper(   
     input clk,              // 100 MHz clock
     input [4:0] buttons,  
     input [15:0] switches,   
     output logic [15:0] leds,
     output logic [7:0] segs,  
-    output logic [3:0] an, 
+    output logic [3:0] an,  
     output Hsync,
     output Vsync,
     output logic [3:0] vgaRed, vgaGreen, vgaBlue     
@@ -104,20 +104,20 @@ module OTTER_Wrapper(
         .neg_pulse_out ()  
     );
     
-    // instantiate the timer-counter module  
+    // instantiate the timer-counter module   
     timer_counter #(.n(3))  my_tc (
         .clk        (CLK_50MHz), 
-        .tc_cnt_in  (r_tc_cnt_in),
+        .tc_cnt_in  (r_tc_cnt_in), 
         .tc_csr     (r_tc_csr),
         .tc_intr    (s_tc_intr), 
         .tc_cnt_out (s_tc_cnt_out)  
     );
-    
+     
     //- Instantiate RISC-V OTTER MCU 
     OTTER_MCU my_otter(
         .RST        (s_reset),  
         .intr       (s_tc_intr | pos_pulse_out),
-        .clk        (CLK_50MHz),  
+        .clk        (CLK_50MHz),   
         .iobus_in   (IOBUS_in),  
         .iobus_out  (IOBUS_out),  
         .iobus_addr (IOBUS_addr),
