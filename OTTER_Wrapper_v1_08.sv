@@ -4,7 +4,7 @@
 // Engineer:  James Ratner, Joseph Callenes-Sloan, Paul Hummel, Celina Lazaro
 //    
 // Create Date: 11/14/2018 02:46:31 PM 
-// Design Name:  
+// Design Name:   
 // Module Name: OTTER_Wrapper 
 // Project Name:  
 // Target Devices: 
@@ -24,7 +24,7 @@
 //            
 //////////////////////////////////////////////////////////////////////////////////
  
-module OTTER_Wrapper(   
+  module OTTER_Wrapper(   
     input clk,              // 100 MHz clock
     input [4:0] buttons,  
     input [15:0] switches,   
